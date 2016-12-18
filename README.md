@@ -2,7 +2,7 @@
 
 ## Description
 
-Create endpoints to play the game.
+User plays the game of Rock Paper Scissors Lizard Spock with the computer.
 
 ## Objectives
 
@@ -21,6 +21,6 @@ Offer enough endpoints to play the game:
 
 * List of the top 10 player scores
 
-## Endpoint: '/score/player_name/'
+### Endpoint: '/score/player_name/'
 
 * Get the score for a particular player
