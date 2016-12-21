@@ -6,8 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from game.models import Game, GAME_CHOICES
-from game.serializers import GameSerializer, NewGameSerializer, ScoreSerializer, \
-    ComputerComputerSerializer
+from game.serializers import GameSerializer, NewGameSerializer, ScoreSerializer
 
 
 class ListGameScores(generics.ListCreateAPIView):
@@ -92,6 +91,9 @@ class ListCreateGame(generics.ListCreateAPIView):
             player_wins=player_wins,
             computer_wins=computer_wins
         )
+        if not game:
+            return Response('Item couldn\'t be created with input',
+                            status=status.HTTP_400_BAD_REQUEST)
 
         result = GameSerializer(game)
         return Response(result.data, status=status.HTTP_201_CREATED)
@@ -106,23 +108,21 @@ class ListCreateGame(generics.ListCreateAPIView):
         """
         player_move = player_move.upper()
         c_move = player_move
+        mod_lookup = {
+            0: 'ROCK',
+            1: 'PAPER',
+            2: 'SCISSORS',
+            3: 'LIZARD',
+            4: 'SPOCK'
+        }
 
         while c_move == player_move:
 
             response = requests.get('http://codechallenge.boohma.com/random')
             number = response.json()
             r_num = number.get('random_number')
-
-            if 1 < r_num <= 20:
-                c_move = 'ROCK'
-            elif 20 < r_num <= 40:
-                c_move = 'PAPER'
-            elif 40 < r_num <= 60:
-                c_move = 'SCISSORS'
-            elif 60 < r_num <= 80:
-                c_move = 'LIZARD'
-            elif 80 < r_num <= 100:
-                c_move = 'SPOCK'
+            mod = r_num % 5
+            c_move = mod_lookup[mod]
 
         return c_move
 
@@ -134,31 +134,18 @@ class ListCreateGame(generics.ListCreateAPIView):
         :param computer_move:
         :return:
         """
-        player_wins = False
         player_move = player_move.upper()
         computer_move = computer_move.upper()
+        player_win_lookups = {
+            'ROCK': ['SCISSORS', 'LIZARD'],
+            'PAPER': ['SPOCK', 'ROCK'],
+            'SCISSORS': ['LIZARD', 'PAPER'],
+            'LIZARD': ['SPOCK', 'PAPER'],
+            'SPOCK': ['SCISSORS', 'ROCK']
+        }
 
-        if player_move == 'ROCK':
-            if computer_move == 'SCISSORS' or computer_move == 'LIZARD':
-                player_wins = True
+        return computer_move in player_win_lookups[player_move]
 
-        if player_move == 'PAPER':
-            if computer_move == 'SPOCK' or computer_move == 'ROCK':
-                player_wins = True
-
-        if player_move == 'SCISSORS':
-            if computer_move == 'LIZARD' or computer_move == 'PAPER':
-                player_wins = True
-
-        if player_move == 'LIZARD':
-            if computer_move == 'SPOCK' or computer_move == 'PAPER':
-                player_wins = True
-
-        if player_move == 'SPOCK':
-            if computer_move == 'SCISSORS' or computer_move == 'ROCK':
-                player_wins = True
-
-        return player_wins
 
     @staticmethod
     def get_computer_wins(player_wins):
