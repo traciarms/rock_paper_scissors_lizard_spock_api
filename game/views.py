@@ -1,4 +1,5 @@
-import requests
+import random
+
 from django.db.models import Count, Sum
 from rest_framework import generics
 from rest_framework import status
@@ -118,9 +119,7 @@ class ListCreateGame(generics.ListCreateAPIView):
 
         while c_move == player_move:
 
-            response = requests.get('http://codechallenge.boohma.com/random')
-            number = response.json()
-            r_num = number.get('random_number')
+            r_num = random.randint(1, 100)
             mod = r_num % 5
             c_move = mod_lookup[mod]
 
